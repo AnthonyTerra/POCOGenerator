@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{90376CAC-373A-4960-873F-FB208CF3BE83}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Db</RootNamespace>
+    <AssemblyName>Db</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SqlServer.Types, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DbObject\ExtendedProperty.cs" />
+    <Compile Include="DbObject\ProcedureCollection.cs" />
+    <Compile Include="Helpers\DbHelper.cs" />
+    <Compile Include="DbObject\ComplexType.cs" />
+    <Compile Include="DbObject\ComputedColumn.cs" />
+    <Compile Include="DbObject\ComplexTypeColumn.cs" />
+    <Compile Include="DbObject\IndexColumn.cs" />
+    <Compile Include="DbObject\IdentityColumn.cs" />
+    <Compile Include="DbObject\NavigationProperty.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="POCOIterator\DbIterator.cs" />
+    <Compile Include="DbObject\Database.cs" />
+    <Compile Include="DbObject\DbType.cs" />
+    <Compile Include="DbObject\ForeignKey.cs" />
+    <Compile Include="DbObject\Function.cs" />
+    <Compile Include="DbObject\IColumn.cs" />
+    <Compile Include="DbObject\IDbObject.cs" />
+    <Compile Include="DbObject\IDbObjectTraverse.cs" />
+    <Compile Include="DbObject\PrimaryKey.cs" />
+    <Compile Include="DbObject\Procedure.cs" />
+    <Compile Include="DbObject\ProcedureColumn.cs" />
+    <Compile Include="DbObject\ProcedureParameter.cs" />
+    <Compile Include="DbObject\Server.cs" />
+    <Compile Include="DbObject\SystemObject.cs" />
+    <Compile Include="DbObject\Table.cs" />
+    <Compile Include="DbObject\TableColumn.cs" />
+    <Compile Include="DbObject\TVP.cs" />
+    <Compile Include="DbObject\TVPColumn.cs" />
+    <Compile Include="DbObject\UniqueKey.cs" />
+    <Compile Include="DbObject\View.cs" />
+    <Compile Include="Extensions\DataTableExtensions.cs" />
+    <Compile Include="POCOIterator\IEFIterator.cs" />
+    <Compile Include="POCOIterator\IPOCOIterator.cs" />
+    <Compile Include="IPOCOWriter.cs" />
+    <Compile Include="POCOIterator\EFIterator.cs" />
+    <Compile Include="POCOIterator\POCOIteratorFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Helpers\NameHelper.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
