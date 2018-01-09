@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Db.DbObject
 {
-    public class Table : IDbObjectTraverse
+    public class Table : IDbColumnTraverse
     {
         public string table_schema { get; set; }
         public string table_name { get; set; }

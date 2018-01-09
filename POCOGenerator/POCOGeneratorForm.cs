@@ -669,17 +669,34 @@ namespace POCOGenerator
             columnsNode.ImageIndex = (int)ImageType.Folder;
             columnsNode.SelectedImageIndex = (int)ImageType.Folder;
 
-            if (procedure.ProcedureColumns != null && procedure.ProcedureColumns.Count > 0)
+            if (procedure.ProcedureResults != null && procedure.ProcedureResults.Count > 0)
             {
                 procedureNode.Nodes.Add(columnsNode);
 
-                foreach (ProcedureColumn column in procedure.ProcedureColumns.OrderBy<ProcedureColumn, int>(c => c.ColumnOrdinal ?? 0))
+                foreach (ProcedureResult result in procedure.ProcedureResults.OrderBy<ProcedureResult, int>(c => c.ItemNumber ))
                 {
-                    TreeNode columnNode = new TreeNode(column.ToString());
-                    columnNode.Tag = new NodeTag() { NodeType = DbType.ProcedureColumn, DbObject = column };
-                    columnNode.ImageIndex = (int)ImageType.Column;
-                    columnNode.SelectedImageIndex = (int)ImageType.Column;
-                    columnsNode.Nodes.Add(columnNode);
+                    TreeNode resultNode = columnsNode;
+                    if (procedure.ProcedureResults.Count > 1)
+                    {
+                        columnsNode.Text = "Results";
+                        resultNode = new TreeNode(result.ToString());
+                        resultNode.Tag = new NodeTag() {NodeType = DbType.ProcedureResultSet, DbObject = result};
+                        resultNode.ImageIndex = (int) ImageType.Folder;
+                        resultNode.SelectedImageIndex = (int) ImageType.Folder;
+                        columnsNode.Nodes.Add(resultNode);
+                    }
+                    if (result.ProcedureColumns != null && result.ProcedureColumns.Count > 0)
+                    {
+                        foreach (ProcedureColumn column in result.ProcedureColumns.OrderBy<ProcedureColumn, int>(c =>
+                            c.ColumnOrdinal ?? 0))
+                        {
+                            TreeNode columnNode = new TreeNode(column.ToString());
+                            columnNode.Tag = new NodeTag() {NodeType = DbType.ProcedureColumn, DbObject = column};
+                            columnNode.ImageIndex = (int) ImageType.Column;
+                            columnNode.SelectedImageIndex = (int) ImageType.Column;
+                            resultNode.Nodes.Add(columnNode);
+                        }
+                    }
                 }
             }
             else if (procedure.Error != null)
@@ -729,16 +746,18 @@ namespace POCOGenerator
             columnsNode.ImageIndex = (int)ImageType.Folder;
             columnsNode.SelectedImageIndex = (int)ImageType.Folder;
 
-            if (function.ProcedureColumns != null && function.ProcedureColumns.Count > 0)
+            if (function.ProcedureResults?.FirstOrDefault()?.ProcedureColumns != null && function.ProcedureResults.FirstOrDefault()?.ProcedureColumns.Count > 0)
             {
                 functionNode.Nodes.Add(columnsNode);
+                if (function.ProcedureResults?.FirstOrDefault() == null) return functionNode;
 
-                foreach (ProcedureColumn column in function.ProcedureColumns.OrderBy<ProcedureColumn, int>(c => c.ColumnOrdinal ?? 0))
+                foreach (ProcedureColumn column in function.ProcedureResults.FirstOrDefault()?.ProcedureColumns
+                    .OrderBy<ProcedureColumn, int>(c => c.ColumnOrdinal ?? 0))
                 {
                     TreeNode columnNode = new TreeNode(column.ToString());
-                    columnNode.Tag = new NodeTag() { NodeType = DbType.ProcedureColumn, DbObject = column };
-                    columnNode.ImageIndex = (int)ImageType.Column;
-                    columnNode.SelectedImageIndex = (int)ImageType.Column;
+                    columnNode.Tag = new NodeTag() {NodeType = DbType.ProcedureColumn, DbObject = column};
+                    columnNode.ImageIndex = (int) ImageType.Column;
+                    columnNode.SelectedImageIndex = (int) ImageType.Column;
                     columnsNode.Nodes.Add(columnNode);
                 }
             }
@@ -2086,7 +2105,9 @@ namespace POCOGenerator
                 else if (nodeType == DbType.ProcedureParameter)
                     dbObject = ((ProcedureParameter)((NodeTag)selectedNode.Tag).DbObject).Procedure;
                 else if (nodeType == DbType.ProcedureColumn)
-                    dbObject = ((ProcedureColumn)((NodeTag)selectedNode.Tag).DbObject).Procedure;
+                    dbObject = ((ProcedureColumn)((NodeTag)selectedNode.Tag).DbObject).ProcedureResult;
+                else if (nodeType == DbType.ProcedureResultSet)
+                    dbObject = (ProcedureResult)((NodeTag)selectedNode.Tag).DbObject;
                 else if (nodeType == DbType.TVP || nodeType == DbType.TVPColumns)
                     dbObject = (TVP)((NodeTag)selectedNode.Tag).DbObject;
                 else if (nodeType == DbType.TVPColumn)
@@ -2102,10 +2123,12 @@ namespace POCOGenerator
                         dbObjectPrevious = ((TableColumn)((NodeTag)selectedNodePrevious.Tag).DbObject).Table;
                     else if (nodeTypePrevious == DbType.Procedure || nodeTypePrevious == DbType.Function || nodeTypePrevious == DbType.ProcedureParameters || nodeTypePrevious == DbType.ProcedureColumns)
                         dbObjectPrevious = (Procedure)((NodeTag)selectedNodePrevious.Tag).DbObject;
+                    else if (nodeTypePrevious == DbType.ProcedureResultSet)
+                        dbObjectPrevious = (ProcedureResult)((NodeTag)selectedNodePrevious.Tag).DbObject;
                     else if (nodeTypePrevious == DbType.ProcedureParameter)
                         dbObjectPrevious = ((ProcedureParameter)((NodeTag)selectedNodePrevious.Tag).DbObject).Procedure;
                     else if (nodeTypePrevious == DbType.ProcedureColumn)
-                        dbObjectPrevious = ((ProcedureColumn)((NodeTag)selectedNodePrevious.Tag).DbObject).Procedure;
+                        dbObjectPrevious = ((ProcedureColumn)((NodeTag)selectedNodePrevious.Tag).DbObject).ProcedureResult;
                     else if (nodeTypePrevious == DbType.TVP || nodeTypePrevious == DbType.TVPColumns)
                         dbObjectPrevious = (TVP)((NodeTag)selectedNodePrevious.Tag).DbObject;
                     else if (nodeTypePrevious == DbType.TVPColumn)

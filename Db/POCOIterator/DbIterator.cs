@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Db.DbObject;
@@ -72,29 +73,18 @@ namespace Db.POCOIterator
 
                     if (IsWriteObject(navigationProperties, dbObject))
                     {
-                        // Class Attributes
-                        WriteClassAttributes(dbObject, namespaceOffset);
-
-                        // Class Start
-                        WriteClassStart(className, dbObject, namespaceOffset);
-
-                        // Constructor
-                        WriteConstructor(className, navigationProperties, dbObject, namespaceOffset);
-
-                        // Columns
-                        if (dbObject.Columns != null && dbObject.Columns.Any())
+                        if (dbObject is IDbResultTraverse)
                         {
-                            var columns = dbObject.Columns.OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
-                            var lastColumn = columns.Last();
-                            foreach (IColumn column in columns)
-                                WriteColumn(column, column == lastColumn, dbObject, namespaceOffset);
+                            var dbresults = (IDbResultTraverse) dbObject;
+                            foreach (var result in dbresults.Results)
+                            {
+                                WriteClass(result, namespaceOffset, result.Name, navigationProperties);
+                            }
                         }
-
-                        // Navigation Properties
-                        WriteNavigationProperties(navigationProperties, dbObject, namespaceOffset);
-
-                        // Class End
-                        WriteClassEnd(dbObject, namespaceOffset);
+                        else if (dbObject is IDbColumnTraverse)
+                        {
+                            WriteClass(dbObject, namespaceOffset, className, navigationProperties);
+                        }
                     }
                 }
 
@@ -107,6 +97,37 @@ namespace Db.POCOIterator
                 // Namespace End
                 WriteNamespaceEnd();
             }
+        }
+
+        private void WriteClass(IDbObjectTraverse dbObject, string namespaceOffset, string className,
+            List<NavigationProperty> navigationProperties)
+        {
+            // Class Attributes
+            WriteClassAttributes(dbObject, namespaceOffset);
+
+            // Class Start
+            WriteClassStart(className, dbObject, namespaceOffset);
+
+            // Constructor
+            WriteConstructor(className, navigationProperties, dbObject, namespaceOffset);
+            if (dbObject is IDbColumnTraverse)
+            {
+                IDbColumnTraverse columnsTraverse = (IDbColumnTraverse) dbObject;
+                // Columns
+                if (columnsTraverse.Columns != null && columnsTraverse.Columns.Any())
+                {
+                    var columns = columnsTraverse.Columns.OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
+                    var lastColumn = columns.Last();
+                    foreach (IColumn column in columns)
+                        WriteColumn(column, column == lastColumn, dbObject, namespaceOffset);
+                }
+            }
+
+            // Navigation Properties
+            WriteNavigationProperties(navigationProperties, dbObject, namespaceOffset);
+
+            // Class End
+            WriteClassEnd(dbObject, namespaceOffset);
         }
 
         #endregion
@@ -158,13 +179,18 @@ namespace Db.POCOIterator
 
             foreach (var dbObject in dbObjects)
             {
-                if (dbObject.Columns != null && dbObject.Columns.Any())
+                if (dbObject is IDbColumnTraverse)
                 {
-                    foreach (IColumn column in dbObject.Columns)
+                    IDbColumnTraverse columnsTraverse = (IDbColumnTraverse)dbObject;
+                    if (columnsTraverse.Columns != null && columnsTraverse.Columns.Any())
                     {
-                        string data_type = (column.DataTypeName ?? string.Empty).ToLower();
-                        if (data_type.Contains("geography") || data_type.Contains("geometry") || data_type.Contains("hierarchyid"))
-                            return true;
+                        foreach (IColumn column in columnsTraverse.Columns)
+                        {
+                            string data_type = (column.DataTypeName ?? string.Empty).ToLower();
+                            if (data_type.Contains("geography") || data_type.Contains("geometry") ||
+                                data_type.Contains("hierarchyid"))
+                                return true;
+                        }
                     }
                 }
             }
@@ -1186,10 +1212,12 @@ namespace Db.POCOIterator
 
             if (IsNavigableObject(dbObject))
             {
-                if (dbObject.Columns != null && dbObject.Columns.Any())
+                if (!(dbObject is IDbColumnTraverse)) return null;
+                var dbColumns = dbObject as IDbColumnTraverse;
+                if (dbColumns.Columns != null && dbColumns.Columns.Any())
                 {
                     // columns are referencing (IsForeignKey)
-                    var columnsFrom = dbObject.Columns.Where(c => c.HasForeignKeys).OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
+                    var columnsFrom = dbColumns.Columns.Where(c => c.HasForeignKeys).OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
                     if (columnsFrom.Any())
                     {
                         if (navigationProperties == null)
@@ -1207,7 +1235,7 @@ namespace Db.POCOIterator
                     }
 
                     // columns are referenced (IsPrimaryForeignKey)
-                    var columnsTo = dbObject.Columns.Where(c => c.HasPrimaryForeignKeys).OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
+                    var columnsTo = dbColumns.Columns.Where(c => c.HasPrimaryForeignKeys).OrderBy<IColumn, int>(c => c.ColumnOrdinal ?? 0);
                     if (columnsTo.Any())
                     {
                         if (navigationProperties == null)

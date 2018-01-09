@@ -7,10 +7,18 @@ namespace Db.DbObject
     {
         string Schema { get; }
         string Name { get; }
-        IEnumerable<IColumn> Columns { get; }
         DbType DbType { get; }
         Exception Error { get; }
         Database Database { get; }
         string ClassName { get; set; }
+    }
+
+    public interface IDbColumnTraverse : IDbObjectTraverse
+    {
+        IEnumerable<IColumn> Columns { get; }
+    }
+    public interface IDbResultTraverse : IDbObjectTraverse
+    {
+        IEnumerable<IResult> Results { get; }
     }
 }

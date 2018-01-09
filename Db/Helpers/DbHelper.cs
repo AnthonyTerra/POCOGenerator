@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Db.DbObject;
 using Db.Extensions;
 
@@ -1139,8 +1140,19 @@ namespace Db.Helpers
                 GetProcedureSchema(procedure, buildingDbObject, builtDbObject);
                 if (procedure.ProcedureParameters != null)
                     procedure.ProcedureParameters.ForEach(p => p.Procedure = procedure);
-                if (procedure.ProcedureColumns != null)
-                    procedure.ProcedureColumns.ForEach(c => c.Procedure = procedure);
+                if (procedure.ProcedureResults != null)
+                {
+                    procedure.ProcedureResults.ForEach(c => c.ParentProcedure = procedure);
+                    foreach (var result in procedure.ProcedureResults.OrderBy(p => p.ItemNumber))
+                    {
+                        if (result.ProcedureColumns != null)
+                            result.ProcedureColumns.ForEach(c =>
+                            {
+                                c.Procedure = procedure;
+                                c.ProcedureResult = result;
+                            });
+                    }
+                }
             }
         }
 
@@ -1201,16 +1213,9 @@ namespace Db.Helpers
 
                 using (SqlDataReader reader = command.ExecuteReader(CommandBehavior.SchemaOnly))
                 {
-                    DataTable schemaTable = reader.GetSchemaTable();
-                    if (schemaTable != null)
-                    {
-                        procedure.ProcedureColumns = schemaTable.Cast<ProcedureColumn>((string columnName, Type columnType, object value) =>
-                        {
-                            if (columnName == "NumericScale")
-                                return (int?)(value as short?);
-                            return value;
-                        }).Where(c => string.IsNullOrEmpty(c.ColumnName) == false).ToList();
-                    }
+                    int index = 0;
+                    procedure.ProcedureResults = new List<ProcedureResult>();
+                    LoopProcResults(procedure, reader);
                 }
             }
         }
@@ -1243,18 +1248,37 @@ namespace Db.Helpers
 
                 using (SqlDataReader reader = command.ExecuteReader(CommandBehavior.SchemaOnly))
                 {
-                    DataTable schemaTable = reader.GetSchemaTable();
-                    if (schemaTable != null)
-                    {
-                        procedure.ProcedureColumns = schemaTable.Cast<ProcedureColumn>((string columnName, Type columnType, object value) =>
-                        {
-                            if (columnName == "NumericScale")
-                                return (int?)(value as short?);
-                            return value;
-                        }).Where(c => string.IsNullOrEmpty(c.ColumnName) == false).ToList();
-                    }
+                    
+                    procedure.ProcedureResults = new List<ProcedureResult>();
+                    LoopProcResults(procedure, reader);
                 }
             }
+        }
+
+        private static void LoopProcResults(Procedure procedure, SqlDataReader reader)
+        {
+            int index = 0;
+            do
+            {
+                index++;
+                ProcedureResult pr = new ProcedureResult
+                {
+                    ParentProcedure = procedure,
+                    ItemNumber = index,
+                };
+                DataTable schemaTable = reader.GetSchemaTable();
+                if (schemaTable != null)
+                {                    
+                    pr.ProcedureColumns = schemaTable.Cast<ProcedureColumn>(
+                        (string columnName, Type columnType, object value) =>
+                        {                            
+                            if (columnName == "NumericScale")
+                                return (int?) (value as short?);
+                            return value;
+                        }).Where(c => string.IsNullOrEmpty(c.ColumnName) == false).ToList();
+                }
+                procedure.ProcedureResults.Add(pr);
+            } while (reader.NextResult());
         }
 
         #endregion
@@ -1294,8 +1318,8 @@ namespace Db.Helpers
                 {
                     if (function.ProcedureParameters != null)
                         function.ProcedureParameters.ForEach(p => p.Procedure = function);
-                    if (function.ProcedureColumns != null)
-                        function.ProcedureColumns.ForEach(c => c.Procedure = function);
+                    if (function.ProcedureResults.FirstOrDefault()?.ProcedureColumns != null)
+                        function.ProcedureResults.FirstOrDefault()?.ProcedureColumns.ForEach(c => c.Procedure = function);
                 }
             }
 
@@ -1357,15 +1381,23 @@ namespace Db.Helpers
                 using (SqlDataReader reader = command.ExecuteReader(CommandBehavior.SchemaOnly))
                 {
                     DataTable schemaTable = reader.GetSchemaTable();
+                    function.ProcedureResults = new List<ProcedureResult>();
+                    ProcedureResult pr = new ProcedureResult
+                    {
+                        ParentProcedure = function,
+                        ItemNumber = 0,
+                    };
+                    
                     if (schemaTable != null)
                     {
-                        function.ProcedureColumns = schemaTable.Cast<ProcedureColumn>((string columnName, Type columnType, object value) =>
+                        pr.ProcedureColumns = schemaTable.Cast<ProcedureColumn>((string columnName, Type columnType, object value) =>
                         {
                             if (columnName == "NumericScale")
                                 return (int?)(value as short?);
                             return value;
                         }).Where(c => string.IsNullOrEmpty(c.ColumnName) == false).ToList();
                     }
+                    function.ProcedureResults.Add(pr);
                 }
             }
         }

@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbObject\ExtendedProperty.cs" />
+    <Compile Include="DbObject\IResult.cs" />
     <Compile Include="DbObject\ProcedureCollection.cs" />
     <Compile Include="Helpers\DbHelper.cs" />
     <Compile Include="DbObject\ComplexType.cs" />

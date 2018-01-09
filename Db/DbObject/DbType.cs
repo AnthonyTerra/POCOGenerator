@@ -15,6 +15,7 @@ namespace Db.DbObject
         Column,
         Procedures,
         Procedure,
+        ProcedureResultSet,
         Functions,
         Function,
         ProcedureParameters,

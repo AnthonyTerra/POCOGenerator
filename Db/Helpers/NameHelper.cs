@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Db.Extensions;
@@ -149,7 +150,94 @@ namespace Db.Helpers
             "last",
             "ending"
         };
+        private static Dictionary<int,string> _ordinals = new Dictionary<int, string>
+        {
+            {0, "zeroth"},
+            {1, "first"},
+            {2, "second"},
+            {3, "third"},
+            {4, "fourth"},
+            {5, "fifth"},
+            {6, "sixth"},
+            {7, "seventh"},
+            {8, "eighth"},
+            {9, "ninth"},
+            {10, "tenth"},
+            {11, "eleventh"},
+            {12, "twelfth"},
+            {13, "thirteenth"},
+            {14, "fourteenth"},
+            {15, "fifteenth"},
+            {16, "sixteenth"},
+            {17, "seventeenth"},
+            {18, "eighteenth"},
+            {19, "nineteenth"},
+            {20, "twentieth"},
+            {30, "thirtieth"},
+            {40, "fortieth"},
+            {50, "fiftieth"},
+            {60, "sixtieth"},
+            {70, "seventieth"},
+            {80, "eightieth"},
+            {90, "ninetieth"},
+            
 
+        };
+
+        private static Dictionary<int, string> _numbers = new Dictionary<int, string>
+        {
+            {0, "zero"},
+            {1, "one"},
+            {2, "two"},
+            {3, "three"},
+            {4, "four"},
+            {5, "five"},
+            {6, "six"},
+            {7, "seven"},
+            {8, "eight"},
+            {9, "nine"},
+            {10, "ten"},
+            {11, "eleven"},
+            {12, "twelve"},
+            {13, "thirteen"},
+            {14, "fourteen"},
+            {15, "fifteen"},
+            {16, "sixteen"},
+            {17, "seventeen"},
+            {18, "eighteen"},
+            {19, "nineteen"},
+            {20, "twenty"},
+            {30, "thirty"},
+            {40, "forty"},
+            {50, "fifty"},
+            {60, "sixty"},
+            {70, "seventy"},
+            {80, "eighty"},
+            {90, "ninety"},
+        };
+        public static string GetOrdinalIdentifier(this int ordinal)
+        {
+            IEnumerable<KeyValuePair<int, string>> items = _numbers.ToList().OrderByDescending(i => i.Key);
+
+            int remainder = 0;
+            int count = 0;
+            foreach (var item in items)
+            {
+                count = ordinal / item.Key;
+                if (count > 0)
+                {
+                    remainder = ordinal % item.Key;                    
+                    if (remainder == 0)
+                    {
+                        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(_ordinals[item.Key]);
+                    }
+                    break;
+                }
+            }
+
+            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"({_numbers[count] + _ordinals[remainder]}s)");
+
+        }
         public static string AddNamePrefix(string name, string columnName)
         {
             string columnNameLower = columnName.ToLower();

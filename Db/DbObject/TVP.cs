@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Db.DbObject
 {
-    public class TVP : IDbObjectTraverse
+    public class TVP : IDbColumnTraverse
     {
         public string tvp_schema { get; set; }
         public string tvp_name { get; set; }

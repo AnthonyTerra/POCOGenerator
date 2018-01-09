@@ -115,7 +115,7 @@ namespace Db.POCOIterator
             if (IsEF && dbObject.DbType == DbType.Table)
             {
                 // Primary Key
-                bool isCompositePrimaryKey = IsCompositePrimaryKey(dbObject);
+                bool isCompositePrimaryKey = IsCompositePrimaryKey(dbObject as IDbColumnTraverse);
                 if (column.IsPrimaryKey)
                 {
                     if (isCompositePrimaryKey)
@@ -217,7 +217,7 @@ namespace Db.POCOIterator
             }
         }
 
-        protected virtual bool IsCompositePrimaryKey(IDbObjectTraverse dbObject)
+        protected virtual bool IsCompositePrimaryKey(IDbColumnTraverse dbObject)
         {
             if (dbObject.Columns != null && dbObject.Columns.Count() > 0)
             {

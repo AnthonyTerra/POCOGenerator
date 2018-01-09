@@ -38,6 +38,7 @@ namespace Db.DbObject
         public bool? IsColumnSet { get; set; }
 
         public Procedure Procedure { get; set; }
+        public ProcedureResult ProcedureResult { get; set; }
 
         public override string ToString()
         {
